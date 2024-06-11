@@ -23,14 +23,17 @@ public:
 	// in m
 	FVector Position;
 
+	// position buffer
 	FVector P[4];
 
 	// in m / s
 	UPROPERTY(EditAnywhere, Category = "OrbitSim|Body")
 	FVector Velocity;
 
+	// velocity buffer
 	FVector V[4];
 
+	// acceleration buffer
 	// in m / s^2
 	FVector A[4];
 
@@ -48,4 +51,7 @@ public:
 
 protected:
 	virtual void BeginPlay() override;
+
+public:
+	void ClearBuffers();
 };

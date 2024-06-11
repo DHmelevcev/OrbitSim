@@ -104,5 +104,20 @@ public:
 private:
 	void UpdateTrajectoryLines();
 
+	void CalculateAccelerations(int32 Stage) const;
+
+	void IntegrationStage
+	(
+		ASimBody& Body,
+		double StepLength,
+		int32 Stage
+	) const;
+
+	void IntegrationStep
+	(
+		ASimBody& Body,
+		double StepLength
+	) const;
+
 	void Integrate(double DeltaTime);
 };
