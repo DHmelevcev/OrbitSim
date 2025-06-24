@@ -1,10 +1,19 @@
-// DHmelevcev 2024
+﻿// DHmelevcev 2024
 
 #include "SimGameMode.h"
+#include <condition_variable>
+#include <mutex>
 #include "Kismet/GameplayStatics.h"
 #include "SimBody.h"
 #include "SimCelestialBody.h"
-#include "SimTrajectories.h"
+#include "SimTrajectoriesHandler.h"
+#include "SimSignalHandler.h"
+#include "SimBaseStation.h"
+#include "SimFileManager.h"
+
+std::mutex m;
+std::condition_variable cv;
+bool logReady = false;
 
 ASimGameMode::ASimGameMode() :
     UpdatedTo(FDateTime::FromUnixTimestamp(0)),
@@ -38,14 +47,117 @@ void ASimGameMode::BeginPlay()
             PhysicBodies.Emplace(Cast<ASimBody>(actor));
     }
 
-    Trajectories = static_cast<ASimTrajectories*>(
-        UGameplayStatics::GetActorOfClass(
-            world,
-            ASimTrajectories::StaticClass()
-        )
+    UGameplayStatics::GetAllActorsOfClass
+    (
+        world,
+        ASimBaseStation::StaticClass(),
+        actors
     );
 
+    // add bases to signal handler
+    for (const auto& actor : actors)
+    {
+        BaseStations.Emplace(Cast<ASimBaseStation>(actor));
+    }
+
+    TrajectoriesHandler = static_cast<ASimTrajectoriesHandler*>(
+        UGameplayStatics::GetActorOfClass(
+            world, ASimTrajectoriesHandler::StaticClass()));
+
+    SignalHandler = static_cast<ASimSignalHandler*>(
+        UGameplayStatics::GetActorOfClass(
+            world, ASimSignalHandler::StaticClass()));
+
+    if (SignalHandler != nullptr)
+        SignalHandler->SetContext(PhysicBodies, CelestialBodies, BaseStations);
+
     SetOrigin(CelestialBodies[0]);
+}
+
+void LogThread(ASimGameMode* GameMode, FDateTime EndLogTime) {
+    FDateTime LastLogged = 0;
+    TArray<FVector> LoggingPotitions;
+    TArray<double> Values;
+    Values.SetNum(180 * 360);
+    uint32 counter = 0;
+
+    while (true) {
+        std::unique_lock lk(m);
+        cv.wait(lk, [] { return logReady; });
+
+        double PassedTime = (GameMode->UpdatedTo - LastLogged).GetTotalSeconds();
+        if ((EndLogTime - LastLogged).GetTotalSeconds() <= 0) {
+            logReady = false;
+            lk.unlock();
+            cv.notify_all();
+            break;
+        }
+        if (PassedTime < 29) {
+            logReady = false;
+            lk.unlock();
+            cv.notify_all();
+            continue;
+        }
+
+        LoggingPotitions.Reset();
+        for (int32 i = 0; i < GameMode->PhysicBodies.Num(); ++i)
+            LoggingPotitions.Emplace(GameMode->PhysicBodies[i]->Position);
+
+        LastLogged = GameMode->UpdatedTo;
+
+        logReady = false;
+        lk.unlock();
+        cv.notify_all();
+
+        const ASimCelestialBody& CelestialBody = *(GameMode->CelestialBodies)[0];
+        FRotator Rotation = CelestialBody.StaticMesh->GetRelativeRotation();
+
+        for (int16 j = 0; j < 180; ++j) {
+            for (int16 i = 0; i < 360; ++i) {
+                double Longitude = i - 179.5;
+                double Latitude = 89.5 - j;
+
+                FVector o = FRotator(Rotation.Pitch + Latitude,
+                                     Rotation.Yaw + 180 - Longitude,
+                                     0)
+                                    .Vector() * CelestialBody.Radius * 1e3;
+
+                for (const auto PhysicBody : GameMode->PhysicBodies) {
+                    FVector r = PhysicBody->Position - o;
+                    r.Normalize();
+                    if (r.Dot(o.GetUnsafeNormal()) >= 0.087155742) // arcsin(5deg)
+                        ++Values[j * 360 + i];
+                }
+            }
+        }
+
+        ++counter;
+    }
+
+    for (auto& value : Values) {
+        value /= counter;
+    }
+
+    USimFileManager::SaveCoverageData(Values);
+}
+
+void ASimGameMode::StartLog() {
+    if (this->LogEnabled)
+        return;
+
+    FTimespan maxLifetime = 0;
+    for (size_t i = 0; i < PhysicBodies.Num(); ++i) {
+        const FTimespan& lifetime = PhysicBodies[i]->TrajectoryLifetime;
+        if (lifetime > maxLifetime)
+            maxLifetime = lifetime;
+    }
+
+    AsyncTask(ENamedThreads::AnyThread, [this, maxLifetime]() {
+        this->LogEnabled = true;
+        LogThread(this, this->WorldTime + 2 * maxLifetime);
+        this->LogEnabled = false;
+        cv.notify_all();
+    });
 }
 
 void ASimGameMode::Tick
@@ -55,10 +167,20 @@ void ASimGameMode::Tick
 {
     WorldTime += FTimespan::FromSeconds(DeltaTime * TimeDilation);
     int32 sim_time_direction = FMath::Sign((WorldTime - UpdatedTo).GetTicks());
+
     while (UpdatedTo + dt < WorldTime || UpdatedTo > WorldTime)
     {
-        Integrate(sim_time_direction * dtSeconds);
+        std::unique_lock lk(m);
+        cv.wait(lk, [this] { return !logReady || !LogEnabled; });
+
         UpdatedTo += sim_time_direction * dt;
+
+        Integrate(sim_time_direction * dtSeconds);
+
+        logReady = true;
+        lk.unlock();
+        cv.notify_all();
+
         UpdateTrajectoryLines();
     }
 
@@ -78,8 +200,8 @@ void ASimGameMode::Tick
         }
     }
 
-    int32 destroyed_bodies = 0;
     int32 NumP = PhysicBodies.Num();
+    int32 destroyed_bodies = 0;
     for (int32 i = 0; i < NumP - destroyed_bodies; ++i)
     {
         // check collision
@@ -106,8 +228,24 @@ void ASimGameMode::Tick
 
     float PassedTime = DeltaTime * abs(TimeDilation);
 
-    if (Trajectories != nullptr)
-        Trajectories->Update(PassedTime);
+    if (TrajectoriesHandler != nullptr)
+        TrajectoriesHandler->Update(PassedTime);
+}
+
+ASimBody* ASimGameMode::SpawnBody(const FString& Name, ASimCelestialBody* const MainBody, double SemiMajorAxis, double Eccentricity, double Inclination, double LongitudeOfAscendingNode, double ArgumentOfPerigee, double TrueAnomaly)
+{
+    if (!NewBodyClass)
+        return nullptr;
+
+    ASimBody* SpawnedActor = GetWorld()->SpawnActor<ASimBody>(NewBodyClass, MainBody->GetActorLocation(), FRotator(0.0f, 0.0f, 0.0f));
+
+    bool result = SetBodyOrbit(Name, SpawnedActor, MainBody, SemiMajorAxis, Eccentricity, Inclination, LongitudeOfAscendingNode, ArgumentOfPerigee, TrueAnomaly);
+    if (!result) {
+        GetWorld()->DestroyActor(SpawnedActor);
+        return nullptr;
+    }
+
+    return SpawnedActor;
 }
 
 bool ASimGameMode::SetBodyOrbit
@@ -115,46 +253,64 @@ bool ASimGameMode::SetBodyOrbit
     const FString& Name,
     ASimBody *const NewBody,
     ASimCelestialBody *const MainBody,
-    double SemiMajorAxis,
-    double Eccentricity,
-    double Inclination,
-    double LongitudeOfAscendingNode,
-    double ArgumentOfPerigee,
-    double TrueAnomaly
+    double SemiMajorAxis, // a
+    double Eccentricity, // e
+    double Inclination, // i
+    double LongitudeOfAscendingNode, // Ω
+    double ArgumentOfPerigee, // ω
+    double TrueAnomaly // θ
 )
 {
-    double FocalParameter = 1000. * SemiMajorAxis * (1 - Eccentricity * Eccentricity);
-    double SpeedInPeriapsis = sqrt(MainBody->GM / FocalParameter);
-    
-    FVector Radius = FRotator(
-        FMath::Sin(FMath::DegreesToRadians
-            (ArgumentOfPerigee)) * Inclination,
-        -LongitudeOfAscendingNode - ArgumentOfPerigee,
-        0.
-    ).Vector();
-    Radius *= FocalParameter / (1 + Eccentricity/* * cos(TrueAnomaly)*/);
+    Inclination = FMath::DegreesToRadians(Inclination);
+    LongitudeOfAscendingNode = FMath::DegreesToRadians(LongitudeOfAscendingNode);
+    ArgumentOfPerigee = FMath::DegreesToRadians(ArgumentOfPerigee);
+    TrueAnomaly = FMath::DegreesToRadians(TrueAnomaly);
 
-        
-    FVector RadialSpeed(Radius);
-    RadialSpeed.Normalize();
-    RadialSpeed *=	Eccentricity * 0/*sin(TrueAnomaly)*/ * SpeedInPeriapsis;
+    double sini = sin(Inclination);
+    double cosi = cos(Inclination);
 
-    FVector TangentialSpeed = FRotator(
-        FMath::Cos(FMath::DegreesToRadians
-            (ArgumentOfPerigee)) * Inclination,
-        -90. - LongitudeOfAscendingNode - ArgumentOfPerigee,
-        0.
-    ).Vector();
-    TangentialSpeed *= SpeedInPeriapsis * (1 + Eccentricity/* * cos(TrueAnomaly)*/);
+    double sinΩ = sin(LongitudeOfAscendingNode);
+    double cosΩ = cos(LongitudeOfAscendingNode);
+
+    double sinω = sin(ArgumentOfPerigee);
+    double cosω = cos(ArgumentOfPerigee);
+
+    double sinθ = sin(TrueAnomaly);
+    double cosθ = cos(TrueAnomaly);
+
+    // Eccentric anomaly
+    double cosE = (Eccentricity + cosθ) / (1 + Eccentricity * cosθ);
+    double sinE = FMath::Sign(sinθ) * sqrt(1 - cosE * cosE);
+
+    double Distance = 1000. * SemiMajorAxis * (1 - Eccentricity * cosE);
+
+    double temp0 = sqrt(MainBody->GM /* µ */ * 1000. * SemiMajorAxis) / Distance;
+
+    // orbital frame velocity
+    double OVx = -temp0 * sinE;
+    double OVy = temp0 * sqrt(1 - Eccentricity * Eccentricity) * cosE;
+
+    double temp11 = -cosω * cosΩ + sinω * cosi * sinΩ;
+    double temp12 = -sinω * cosΩ - cosω * cosi * sinΩ;
+    double temp21 = -cosω * sinΩ - sinω * cosi * cosΩ;
+    double temp22 = -cosω * cosi * cosΩ + sinω * sinΩ;
+    double temp31 =  sinω * sini;
+    double temp32 =  cosω * sini;
+
+    FVector Radius(Distance * (cosθ * temp11 - sinθ * temp12),
+                  -Distance * (cosθ * temp21 + sinθ * temp22),
+                   Distance * (cosθ * temp31 + sinθ * temp32));
+
+    FVector Velocity(OVx * temp11 - OVy * temp12,
+                   -(OVx * temp21 + OVy * temp22),
+                     OVx * temp31 + OVy * temp32);
 
     NewBody->Position = MainBody->Position + Radius;
-    NewBody->Velocity = MainBody->Velocity + TangentialSpeed + RadialSpeed;
+    NewBody->Velocity = MainBody->Velocity + Velocity;
 
     NewBody->PrevTrajectoryPoint = NewBody->Position * 100;
-    NewBody->TrajectoryLifetime = ETimespan::TicksPerSecond *
-        TWO_PI * sqrt(pow(1000. * SemiMajorAxis, 3) / MainBody->GM);
-    NewBody->TrajectoryCounterPeriod = NewBody->TrajectoryLifetime.GetTotalSeconds() /
-                                       dtSeconds / NewBody->TrajectoryLines;
+    NewBody->TrajectoryLifetime = ETimespan::TicksPerSecond * TWO_PI * sqrt(pow(1000. * SemiMajorAxis, 3) / MainBody->GM);
+    NewBody->TrajectoryCounterPeriod = NewBody->TrajectoryLifetime.GetTotalSeconds() / dtSeconds / NewBody->TrajectoryLines;
 
     if (!Name.IsEmpty())
         NewBody->BodyName = Name;
@@ -195,12 +351,17 @@ void ASimGameMode::SetOrigin
 
     origin.Position = origin.Velocity = FVector::Zero();
 
-    Trajectories->LineBatchComponent->BatchedLines = {};
-    Trajectories->LinesToDraw = {};
+    if (TrajectoriesHandler != nullptr) {
+        TrajectoriesHandler->LineBatchComponent->BatchedLines = {};
+        TrajectoriesHandler->LinesToDraw = {};
+    }
 }
 
 inline void ASimGameMode::UpdateTrajectoryLines()
 {
+    if (TrajectoriesHandler == nullptr)
+        return;
+
     int32 NumP = PhysicBodies.Num();
     int32 NumC = CelestialBodies.Num();
 
@@ -211,20 +372,14 @@ inline void ASimGameMode::UpdateTrajectoryLines()
         {
             FVector NewTrajectoryPoint = body.Position * 100;
 
-            if (Trajectories != nullptr &&
-                body.TrajectoryLifetime > 0 &&
-                UpdatedTo + body.TrajectoryLifetime > WorldTime &&
-                UpdatedTo - body.TrajectoryLifetime < WorldTime)
-            {
-                Trajectories->LinesToDraw.Emplace(FBatchedLine(
-                    body.PrevTrajectoryPoint,
-                    NewTrajectoryPoint,
-                    Color,
-                    body.TrajectoryLifetime.GetTotalSeconds(),
-                    0,
-                    0
-                ));
-            }
+            TrajectoriesHandler->LinesToDraw.Emplace(FBatchedLine(
+                body.PrevTrajectoryPoint,
+                NewTrajectoryPoint,
+                Color,
+                body.TrajectoryLifetime.GetTotalSeconds(),
+                0,
+                0
+            ));
 
             body.PrevTrajectoryPoint = NewTrajectoryPoint;
             body.TrajectoryCounter = 0;

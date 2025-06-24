@@ -1,0 +1,32 @@
+{ "Satellites": [
+  {
+    "Name": "1",
+    "Body": "Earth",
+    "SemiMajorAxis": 42164.14,
+    "Eccentricity": 0.25,
+    "Inclination": 63.4,
+    "LongitudeOfAscendingNode": 30,
+    "ArgumentOfPerigee": 270,
+    "TrueAnomaly": 180
+  },
+  {
+    "Name": "2",
+    "Body": "Earth",
+    "SemiMajorAxis": 42164.14,
+    "Eccentricity": 0.25,
+    "Inclination": 63.4,
+    "LongitudeOfAscendingNode": -90,
+    "ArgumentOfPerigee": 270,
+    "TrueAnomaly": 270
+  },
+  {
+    "Name": "3",
+    "Body": "Earth",
+    "SemiMajorAxis": 42164.14,
+    "Eccentricity": 0.25,
+    "Inclination": 63.4,
+    "LongitudeOfAscendingNode": 150,
+    "ArgumentOfPerigee": 270,
+    "TrueAnomaly": 90
+  }
+]}

@@ -5,15 +5,15 @@
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
 #include "Components/LineBatchComponent.h"
-#include "SimTrajectories.generated.h"
+#include "SimTrajectoriesHandler.generated.h"
 
 UCLASS()
-class ORBITSIM_API ASimTrajectories : public AActor
+class ORBITSIM_API ASimTrajectoriesHandler : public AActor
 {
 	GENERATED_BODY()
 	
 public:	
-	ASimTrajectories();
+	ASimTrajectoriesHandler();
 
 	// trajectory lines currently drawn
 	ULineBatchComponent* LineBatchComponent;

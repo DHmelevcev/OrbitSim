@@ -1,10 +1,12 @@
-// DHmelevcev 2024
+// DHmelevcev 2025
 
 #pragma once
 
 class ASimBody;
 class ASimCelestialBody;
-class ASimTrajectories;
+class ASimTrajectoriesHandler;
+class ASimSignalHandler;
+class ASimBaseStation;
 
 #include "CoreMinimal.h"
 #include "GameFramework/GameModeBase.h"
@@ -71,12 +73,21 @@ public:
 	inline static const FTimespan dt = ETimespan::TicksPerSecond * 5;
 	inline static const double dtSeconds = dt.GetTotalSeconds();
 
-private:
-	TArray<ASimBody*> PhysicBodies;
+public:
+	bool LogEnabled = false;
 
+public:
+	TArray<ASimBody*> PhysicBodies; // all bodies except celestial bodies
 	TArray<ASimCelestialBody*> CelestialBodies;
 
-	ASimTrajectories* Trajectories;
+	TArray<ASimBaseStation*> BaseStations;
+
+private:
+	ASimTrajectoriesHandler* TrajectoriesHandler = nullptr;
+	ASimSignalHandler* SignalHandler = nullptr;
+
+	UPROPERTY(EditDefaultsOnly)
+	TSubclassOf<AActor> NewBodyClass;
 
 protected:
 	virtual void BeginPlay() override;
@@ -85,11 +96,10 @@ public:
 	virtual void Tick(float DeltaTime) override;
 
 	UFUNCTION(BlueprintCallable, Category = "OrbitSim")
-	bool SetBodyOrbit
+	ASimBody* SpawnBody
 	(
 		const FString& Name,
-		ASimBody *const NewBody,
-		ASimCelestialBody *const MainBody,
+		ASimCelestialBody* const MainBody,
 		double SemiMajorAxis,
 		double Eccentricity,
 		double Inclination,
@@ -101,7 +111,23 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "OrbitSim|Trajectory")
 	void SetOrigin(ASimCelestialBody* NewOrigin);
 
+	UFUNCTION(BlueprintCallable, Category = "OrbitSim|Log")
+	void StartLog();
+
 private:
+	bool SetBodyOrbit
+	(
+		const FString& Name,
+		ASimBody* const NewBody,
+		ASimCelestialBody* const MainBody,
+		double SemiMajorAxis,
+		double Eccentricity,
+		double Inclination,
+		double LongitudeOfAscendingNode,
+		double ArgumentOfPerigee,
+		double TrueAnomaly
+	);
+
 	void UpdateTrajectoryLines();
 
 	void CalculateAccelerations(int32 Stage) const;

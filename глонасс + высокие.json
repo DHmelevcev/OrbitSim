@@ -1,0 +1,302 @@
+{ "Satellites": [
+  {
+    "Name": "1",
+    "Body": "Earth",
+    "SemiMajorAxis": 25509,
+    "Eccentricity": 0,
+    "Inclination": 64.8,
+    "LongitudeOfAscendingNode": 0,
+    "ArgumentOfPerigee": 0,
+    "TrueAnomaly": 0
+  },
+  {
+    "Name": "2",
+    "Body": "Earth",
+    "SemiMajorAxis": 25509,
+    "Eccentricity": 0,
+    "Inclination": 64.8,
+    "LongitudeOfAscendingNode": 0,
+    "ArgumentOfPerigee": 45,
+    "TrueAnomaly": 0
+  },
+  {
+    "Name": "3",
+    "Body": "Earth",
+    "SemiMajorAxis": 25509,
+    "Eccentricity": 0,
+    "Inclination": 64.8,
+    "LongitudeOfAscendingNode": 0,
+    "ArgumentOfPerigee": 90,
+    "TrueAnomaly": 0
+  },
+  {
+    "Name": "4",
+    "Body": "Earth",
+    "SemiMajorAxis": 25509,
+    "Eccentricity": 0,
+    "Inclination": 64.8,
+    "LongitudeOfAscendingNode": 0,
+    "ArgumentOfPerigee": 135,
+    "TrueAnomaly": 0
+  },
+  {
+    "Name": "5",
+    "Body": "Earth",
+    "SemiMajorAxis": 25509,
+    "Eccentricity": 0,
+    "Inclination": 64.8,
+    "LongitudeOfAscendingNode": 0,
+    "ArgumentOfPerigee": 180,
+    "TrueAnomaly": 0
+  },
+  {
+    "Name": "6",
+    "Body": "Earth",
+    "SemiMajorAxis": 25509,
+    "Eccentricity": 0,
+    "Inclination": 64.8,
+    "LongitudeOfAscendingNode": 0,
+    "ArgumentOfPerigee": 225,
+    "TrueAnomaly": 0
+  },
+  {
+    "Name": "7",
+    "Body": "Earth",
+    "SemiMajorAxis": 25509,
+    "Eccentricity": 0,
+    "Inclination": 64.8,
+    "LongitudeOfAscendingNode": 0,
+    "ArgumentOfPerigee": 270,
+    "TrueAnomaly": 0
+  },
+  {
+    "Name": "8",
+    "Body": "Earth",
+    "SemiMajorAxis": 25509,
+    "Eccentricity": 0,
+    "Inclination": 64.8,
+    "LongitudeOfAscendingNode": 0,
+    "ArgumentOfPerigee": 315,
+    "TrueAnomaly": 0
+  },
+  {
+    "Name": "9",
+    "Body": "Earth",
+    "SemiMajorAxis": 25509,
+    "Eccentricity": 0,
+    "Inclination": 64.8,
+    "LongitudeOfAscendingNode": 120,
+    "ArgumentOfPerigee": 15,
+    "TrueAnomaly": 0
+  },
+  {
+    "Name": "10",
+    "Body": "Earth",
+    "SemiMajorAxis": 25509,
+    "Eccentricity": 0,
+    "Inclination": 64.8,
+    "LongitudeOfAscendingNode": 120,
+    "ArgumentOfPerigee": 60,
+    "TrueAnomaly": 0
+  },
+  {
+    "Name": "11",
+    "Body": "Earth",
+    "SemiMajorAxis": 25509,
+    "Eccentricity": 0,
+    "Inclination": 64.8,
+    "LongitudeOfAscendingNode": 120,
+    "ArgumentOfPerigee": 105,
+    "TrueAnomaly": 0
+  },
+  {
+    "Name": "12",
+    "Body": "Earth",
+    "SemiMajorAxis": 25509,
+    "Eccentricity": 0,
+    "Inclination": 64.8,
+    "LongitudeOfAscendingNode": 120,
+    "ArgumentOfPerigee": 150,
+    "TrueAnomaly": 0
+  },
+  {
+    "Name": "13",
+    "Body": "Earth",
+    "SemiMajorAxis": 25509,
+    "Eccentricity": 0,
+    "Inclination": 64.8,
+    "LongitudeOfAscendingNode": 120,
+    "ArgumentOfPerigee": 195,
+    "TrueAnomaly": 0
+  },
+  {
+    "Name": "14",
+    "Body": "Earth",
+    "SemiMajorAxis": 25509,
+    "Eccentricity": 0,
+    "Inclination": 64.8,
+    "LongitudeOfAscendingNode": 120,
+    "ArgumentOfPerigee": 240,
+    "TrueAnomaly": 0
+  },
+  {
+    "Name": "15",
+    "Body": "Earth",
+    "SemiMajorAxis": 25509,
+    "Eccentricity": 0,
+    "Inclination": 64.8,
+    "LongitudeOfAscendingNode": 120,
+    "ArgumentOfPerigee": 285,
+    "TrueAnomaly": 0
+  },
+  {
+    "Name": "16",
+    "Body": "Earth",
+    "SemiMajorAxis": 25509,
+    "Eccentricity": 0,
+    "Inclination": 64.8,
+    "LongitudeOfAscendingNode": 120,
+    "ArgumentOfPerigee": 330,
+    "TrueAnomaly": 0
+  },
+  {
+    "Name": "17",
+    "Body": "Earth",
+    "SemiMajorAxis": 25509,
+    "Eccentricity": 0,
+    "Inclination": 64.8,
+    "LongitudeOfAscendingNode": 240,
+    "ArgumentOfPerigee": 30,
+    "TrueAnomaly": 0
+  },
+  {
+    "Name": "18",
+    "Body": "Earth",
+    "SemiMajorAxis": 25509,
+    "Eccentricity": 0,
+    "Inclination": 64.8,
+    "LongitudeOfAscendingNode": 240,
+    "ArgumentOfPerigee": 75,
+    "TrueAnomaly": 0
+  },
+  {
+    "Name": "19",
+    "Body": "Earth",
+    "SemiMajorAxis": 25509,
+    "Eccentricity": 0,
+    "Inclination": 64.8,
+    "LongitudeOfAscendingNode": 240,
+    "ArgumentOfPerigee": 120,
+    "TrueAnomaly": 0
+  },
+  {
+    "Name": "20",
+    "Body": "Earth",
+    "SemiMajorAxis": 25509,
+    "Eccentricity": 0,
+    "Inclination": 64.8,
+    "LongitudeOfAscendingNode": 240,
+    "ArgumentOfPerigee": 165,
+    "TrueAnomaly": 0
+  },
+  {
+    "Name": "21",
+    "Body": "Earth",
+    "SemiMajorAxis": 25509,
+    "Eccentricity": 0,
+    "Inclination": 64.8,
+    "LongitudeOfAscendingNode": 240,
+    "ArgumentOfPerigee": 210,
+    "TrueAnomaly": 0
+  },
+  {
+    "Name": "22",
+    "Body": "Earth",
+    "SemiMajorAxis": 25509,
+    "Eccentricity": 0,
+    "Inclination": 64.8,
+    "LongitudeOfAscendingNode": 240,
+    "ArgumentOfPerigee": 255,
+    "TrueAnomaly": 0
+  },
+  {
+    "Name": "23",
+    "Body": "Earth",
+    "SemiMajorAxis": 25509,
+    "Eccentricity": 0,
+    "Inclination": 64.8,
+    "LongitudeOfAscendingNode": 240,
+    "ArgumentOfPerigee": 300,
+    "TrueAnomaly": 0
+  },
+  {
+    "Name": "24",
+    "Body": "Earth",
+    "SemiMajorAxis": 25509,
+    "Eccentricity": 0,
+    "Inclination": 64.8,
+    "LongitudeOfAscendingNode": 240,
+    "ArgumentOfPerigee": 345,
+    "TrueAnomaly": 0
+  },
+  {
+    "Name": "25",
+    "Body": "Earth",
+    "SemiMajorAxis": 42164.14,
+    "Eccentricity": 0.072,
+    "Inclination": 64.8,
+    "LongitudeOfAscendingNode": 160.03,
+    "ArgumentOfPerigee": 270,
+    "TrueAnomaly": 0
+  },
+  {
+    "Name": "26",
+    "Body": "Earth",
+    "SemiMajorAxis": 42164.14,
+    "Eccentricity": 0.072,
+    "Inclination": 64.8,
+    "LongitudeOfAscendingNode": 160.03,
+    "ArgumentOfPerigee": 270,
+    "TrueAnomaly": 295.09
+  },
+  {
+    "Name": "27",
+    "Body": "Earth",
+    "SemiMajorAxis": 42164.14,
+    "Eccentricity": 0.072,
+    "Inclination": 64.8,
+    "LongitudeOfAscendingNode": 280.03,
+    "ArgumentOfPerigee": 270,
+    "TrueAnomaly": 226.27
+  },
+  {
+    "Name": "28",
+    "Body": "Earth",
+    "SemiMajorAxis": 42164.14,
+    "Eccentricity": 0.072,
+    "Inclination": 64.8,
+    "LongitudeOfAscendingNode": 280.03,
+    "ArgumentOfPerigee": 270,
+    "TrueAnomaly": 163.72
+  },
+  {
+    "Name": "29",
+    "Body": "Earth",
+    "SemiMajorAxis": 42164.14,
+    "Eccentricity": 0.072,
+    "Inclination": 64.8,
+    "LongitudeOfAscendingNode": 40.03,
+    "ArgumentOfPerigee": 270,
+    "TrueAnomaly": 108.94
+  },
+  {
+    "Name": "30",
+    "Body": "Earth",
+    "SemiMajorAxis": 42164.14,
+    "Eccentricity": 0.072,
+    "Inclination": 64.8,
+    "LongitudeOfAscendingNode": 40.03,
+    "ArgumentOfPerigee": 270,
+    "TrueAnomaly": 56.52
+  }
+]}

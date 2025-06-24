@@ -1,9 +1,9 @@
 // DHmelevcev 2024
 
-#include "SimTrajectories.h"
+#include "SimTrajectoriesHandler.h"
 #include "Components/LineBatchComponent.h"
 
-ASimTrajectories::ASimTrajectories()
+ASimTrajectoriesHandler::ASimTrajectoriesHandler()
 {
 	PrimaryActorTick.bCanEverTick = false;
 
@@ -13,7 +13,7 @@ ASimTrajectories::ASimTrajectories()
 	LineBatchComponent->SetupAttachment(RootComponent);
 }
 
-void ASimTrajectories::Update
+void ASimTrajectoriesHandler::Update
 (
 	float PassedTime
 )
